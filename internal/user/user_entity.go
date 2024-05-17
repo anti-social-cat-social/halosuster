@@ -2,12 +2,21 @@ package user
 
 import "time"
 
+type Role string
+
+const (
+	IT    Role = "it"
+	Nurse Role = "nurse"
+)
+
 type User struct {
-	ID        string    `json:"id" db:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"-" db:"createdat"`
+	ID           string `db:"id"`
+	NIP          string `db:"nip"`
+	Role         Role
+	Name         string
+	Password     string
+	IdentityCard string    `db:"identity_card_scan_img"`
+	CreatedAt    time.Time `db:"created_at"`
 }
 
 type UserDTO struct {

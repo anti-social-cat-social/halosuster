@@ -4,84 +4,75 @@ import (
 	"1-cat-social/internal/user"
 	localError "1-cat-social/pkg/error"
 	"1-cat-social/pkg/hasher"
-	localJwt "1-cat-social/pkg/jwt"
+	"strconv"
 	"time"
 )
 
 type IAuthUsecase interface {
-	Login(dto user.LoginDTO) (*authResponse, *localError.GlobalError)
-	Register(dto user.UserDTO) (*authResponse, *localError.GlobalError)
+	NurseLogin(req NurseLoginRequest) (user.User, *localError.GlobalError)
 }
 
 type authUsecase struct {
 	userUc user.IUserUsecase
 }
 
-type authResponse struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-	Token string `json:"accessToken"`
-}
-
-var tokenExpirationHour time.Duration = time.Duration(8)
-
-// Login implements IAuthUsecase.
-func (a *authUsecase) Login(dto user.LoginDTO) (*authResponse, *localError.GlobalError) {
-	// Search user by email
-	result, errUser := a.userUc.FindByEmail(dto.Email)
-	if errUser != nil {
-		return nil, errUser
-	}
-
-	// Compare user password with stored password
-	err := hasher.CheckPassword(result.Password, dto.Password)
-	if err != nil {
-		return nil, localError.ErrBase(400, "Credential not valid", err)
-	}
-
-	// Generate token if no error happened above
-	// Token generated using JWT scheme
-	token, err := localJwt.GenerateToken(*result)
-	if err != nil {
-		return nil, localError.ErrInternalServer(err.Error(), err)
-	}
-
-	// Map claim to auth response auth
-	response := authResponse{
-		Email: result.Email,
-		Name:  result.Name,
-		Token: token,
-	}
-
-	return &response, nil
-}
-
-// Register implements IAuthUsecase.
-func (a *authUsecase) Register(dto user.UserDTO) (*authResponse, *localError.GlobalError) {
-	// Create user data and generate token
-	user, err := a.userUc.Create(dto)
-	if err != nil {
-		return nil, err
-	}
-
-	// Generate token if user successfully created
-	token, errToken := localJwt.GenerateToken(*user)
-	if errToken != nil {
-		return nil, localError.ErrInternalServer(errToken.Error(), errToken)
-	}
-
-	// Map token to auth response auth
-	response := authResponse{
-		Email: user.Email,
-		Name:  user.Name,
-		Token: token,
-	}
-
-	return &response, nil
-}
-
 func NewAuthUsecase(userUc user.IUserUsecase) IAuthUsecase {
 	return &authUsecase{
 		userUc: userUc,
 	}
+}
+
+// NurseLogin implements IAuthUsecase.
+func (a *authUsecase) NurseLogin(req NurseLoginRequest) (user.User, *localError.GlobalError) {
+	if !validateNIP(req.NIP, "nurse") {
+		return user.User{}, localError.ErrNotFound("NIP not valid", nil)
+	}
+
+	// Search user by NIP
+	nurse, err := a.userUc.FindByNIP(req.NIP)
+	if err != nil {
+		return *nurse, err
+	}
+
+	// Compare user password with stored password
+	er := hasher.CheckPassword(nurse.Password, req.Password)
+	if er != nil {
+		return user.User{}, localError.ErrBadRequest("Password not match", er)
+	}
+
+	return *nurse, nil
+}
+
+func validateNIP(nip string, role string) bool {
+	// Check if first three digits are '303'
+	if role == "nurse" && nip[:3] != "303" {
+		return false
+	}
+
+	// Check the fourth digit based on gender
+	genderDigit, _ := strconv.Atoi(nip[3:4])
+	if genderDigit != 1 && genderDigit != 2 {
+		return false
+	}
+
+	// Check if the fifth and eighth digit represent a valid year
+	year, _ := strconv.Atoi(nip[4:8])
+	currentYear := time.Now().Year()
+	if year < 2000 || year > currentYear {
+		return false
+	}
+
+	// Check if the ninth and tenth digit represent a valid month
+	month, _ := strconv.Atoi(nip[8:10])
+	if month < 1 || month > 12 {
+		return false
+	}
+
+	// Check if the eleventh and thirteenth digits are within range
+	randomDigits, _ := strconv.Atoi(nip[10:])
+	if randomDigits < 0 || randomDigits > 999 {
+		return false
+	}
+
+	return true
 }

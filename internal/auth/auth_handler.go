@@ -1,13 +1,12 @@
 package auth
 
 import (
-	"1-cat-social/internal/user"
+	localJwt "1-cat-social/pkg/jwt"
 	"1-cat-social/pkg/response"
 	"1-cat-social/pkg/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 // Auth handler structure for auth
@@ -29,78 +28,31 @@ func (h *authHandler) Router(r *gin.RouterGroup) {
 	group := r.Group("user")
 
 	// Utillize group to use global setting on group parent (if exists)
-	group.POST("login", h.login)
-	group.POST("register", h.register)
+	group.POST("nurse/login", h.NurseLogin)
 }
 
-func (h *authHandler) login(ctx *gin.Context) {
-	var request user.LoginDTO
-
-	// Parse request body to DTO
-	// If error return error response
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		response.GenerateResponse(ctx, 400)
-		ctx.Abort()
-		return
-	}
-
-	// Validate request
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	// Generate error validation if not any field is not valid
-	if err := validate.Struct(request); err != nil {
-		validatorMessage := validation.GenerateStructValidationError(err)
-
-		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(validatorMessage))
-		ctx.Abort()
-		return
-	}
-
-	// Process login on usecase
-	result, err := h.uc.Login(request)
-	if err != nil {
-		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
-		ctx.Abort()
-		return
-	}
-
-	response.GenerateResponse(ctx, 200, response.WithMessage("User logged successfully"), response.WithData(result))
-}
-
-func (h *authHandler) register(ctx *gin.Context) {
-	var request user.UserDTO
+func (h *authHandler) NurseLogin(ctx *gin.Context) {
+	var request NurseLoginRequest
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		response.GenerateResponse(ctx, 400)
-		ctx.Abort()
-		return
-	}
-
-	// Validate request
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	// Register custom validation
-	errValidation := validate.RegisterValidation("valid_name", validation.ValidNameValidator)
-	if errValidation != nil {
-		response.GenerateResponse(ctx, http.StatusInternalServerError, response.WithMessage("Failed register validation"))
-	}
-
-	// Generate error validation if not any field is not valid
-	if err := validate.Struct(request); err != nil {
 		validatorMessage := validation.GenerateStructValidationError(err)
-
 		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(validatorMessage))
-		ctx.Abort()
 		return
 	}
 
-	// Process register via usecase
-	result, err := h.uc.Register(request)
+	nurse, err := h.uc.NurseLogin(request)
 	if err != nil {
 		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
-		ctx.Abort()
 		return
 	}
 
-	response.GenerateResponse(ctx, 201, response.WithMessage("User registered successfully"), response.WithData(result))
+	token, er := localJwt.GenerateToken(nurse)
+	if er != nil {
+		response.GenerateResponse(ctx, http.StatusInternalServerError, response.WithMessage("Failed to generate token"))
+		return
+	}
+
+	res := FormatNurseLoginResponse(nurse, token)
+
+	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("User loggedin successfully!"), response.WithData(res))
 }
