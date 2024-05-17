@@ -1,7 +1,7 @@
 package validation
 
 import (
-	localError "eniqlo/pkg/error"
+	localError "halosuster/pkg/error"
 	"errors"
 	"log"
 	"regexp"

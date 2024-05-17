@@ -1,4 +1,4 @@
-module 1-cat-social
+module halosuster
 
 go 1.21.6
 

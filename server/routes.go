@@ -1,9 +1,8 @@
 package server
 
 import (
-	"1-cat-social/internal/auth"
-	"1-cat-social/internal/user"
-	"1-cat-social/pkg/response"
+	"halosuster/internal/user"
+	"halosuster/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,25 +16,16 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 
 	router.GET("ping", pingHandler)
 
-	initializeAuthHandler(db, router)
+	initializeUserHandler(db, router)
 }
 
-func initializeProductHandler(db *sqlx.DB, router *gin.RouterGroup) {
+func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
 	// Initialize all necessary dependecies
-	productRepo := product.NewProductRepository(db)
-	productUc := product.NewProductUsecase(productRepo)
-	productH := product.NewProductHandler(productUc)
+	userRepo := user.NewUserRepository(db)
+	userUc := user.NewUserUsecase(userRepo)
+	userH := user.NewUserHandler(userUc)
 
-	productH.Router(router)
-}
-
-func initializeCustomerHandler(db *sqlx.DB, router *gin.RouterGroup) {
-	// Initialize all necessary dependecies
-	customerRepo := customer.NewCustomerRepository(db)
-	customerUc := customer.NewCustomerUsecase(customerRepo)
-	customerH := customer.NewCustomerHandler(customerUc)
-
-	customerH.Router(router)
+	userH.Router(router)
 }
 
 func NoRouteHandler(ctx *gin.Context) {

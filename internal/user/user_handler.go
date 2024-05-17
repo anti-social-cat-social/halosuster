@@ -1,36 +1,36 @@
-package staff
+package user
 
 import (
-	localJwt "1-cat-social/pkg/jwt"
-	"1-cat-social/pkg/response"
-	"1-cat-social/pkg/validation"
+	localJwt "halosuster/pkg/jwt"
+	"halosuster/pkg/response"
+	"halosuster/pkg/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-type staffHandler struct {
-	uc IStaffUsecase
+type userHandler struct {
+	uc IUserUsecase
 }
 
-// Constructor for staff handler struct
-func NewStaffHandler(uc IStaffUsecase) *staffHandler {
-	return &staffHandler{
+// Constructor for user handler struct
+func NewUserHandler(uc IUserUsecase) *userHandler {
+	return &userHandler{
 		uc: uc,
 	}
 }
 
-// Router is required to wrap all user request by spesific path URL
-func (h *staffHandler) Router(r *gin.RouterGroup) {
+func (h *userHandler) Router(r *gin.RouterGroup) {
 	// Grouping to give URL prefix
-	group := r.Group("staff")
+	// ex : localhost/user
+	group := r.Group("user")
 
 	// Utillize group to use global setting on group parent (if exists)
 	group.POST("nurse/login", h.NurseLogin)
 }
 
-func (h *authHandler) NurseLogin(ctx *gin.Context) {
-	var request NurseLoginRequest
+func (h *userHandler) NurseLogin(ctx *gin.Context) {
+	var request NurseLoginDTO
 
 	// Parse request body to DTO
 	// If error return error response
@@ -46,7 +46,12 @@ func (h *authHandler) NurseLogin(ctx *gin.Context) {
 		return
 	}
 
-	token, er := localJwt.GenerateToken(nurse)
+	tokenData := localJwt.TokenData{
+		ID: nurse.ID,	
+		Name: nurse.Name,
+	}
+
+	token, er := localJwt.GenerateToken(tokenData)
 	if er != nil {
 		response.GenerateResponse(ctx, http.StatusInternalServerError, response.WithMessage("Failed to generate token"))
 		return

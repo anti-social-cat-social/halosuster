@@ -2,7 +2,7 @@ package product
 
 import (
 	"database/sql"
-	localError "eniqlo/pkg/error"
+	localError "halosuster/pkg/error"
 	"errors"
 	"fmt"
 

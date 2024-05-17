@@ -1,7 +1,7 @@
 package localError
 
 import (
-	"eniqlo/pkg/logger"
+	"halosuster/pkg/logger"
 	"fmt"
 	"net/http"
 	"runtime"
@@ -90,7 +90,14 @@ func ErrConflict(message string, err error) *GlobalError {
 	return baseError
 }
 
-func ErrBadRequest(message string, err error) *GlobalError {
+// Return bad request error structure with customize message and error.
+func ErrBadRequest(message interface{}, err error) *GlobalError {
+	if err != nil {
+		logger.Info(err.Error())
+	} else {
+		logger.Info(message)
+	}
+
 	baseError := ErrBase(http.StatusBadRequest, message, err)
 
 	return baseError

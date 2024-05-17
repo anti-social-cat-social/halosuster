@@ -1,8 +1,8 @@
 package product
 
 import (
-	localError "eniqlo/pkg/error"
-	"eniqlo/pkg/validation"
+	localError "halosuster/pkg/error"
+	"halosuster/pkg/validation"
 )
 
 type IProductUsecase interface {

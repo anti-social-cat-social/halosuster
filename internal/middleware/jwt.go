@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"eniqlo/pkg/jwt"
-	"eniqlo/pkg/response"
+	"halosuster/pkg/jwt"
+	"halosuster/pkg/response"
 	"errors"
 	"net/http"
 	"strings"

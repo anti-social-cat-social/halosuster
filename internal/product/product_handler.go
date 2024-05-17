@@ -1,9 +1,9 @@
 package product
 
 import (
-	"eniqlo/internal/middleware"
-	"eniqlo/pkg/response"
-	"eniqlo/pkg/validation"
+	"halosuster/internal/middleware"
+	"halosuster/pkg/response"
+	"halosuster/pkg/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

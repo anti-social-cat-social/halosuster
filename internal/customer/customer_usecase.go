@@ -1,7 +1,7 @@
 package customer
 
 import (
-	localError "eniqlo/pkg/error"
+	localError "halosuster/pkg/error"
 	"errors"
 
 	"github.com/google/uuid"
