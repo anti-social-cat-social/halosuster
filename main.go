@@ -1,9 +1,6 @@
 package main
 
 import (
-	"1-cat-social/config"
-	"1-cat-social/server"
-	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -20,18 +17,23 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db := config.InitDb()
-
-	fmt.Println(db.Ping())
+	// db := config.InitDb()
+	//
+	// fmt.Println(db.Ping())
 
 	// Logger
 	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	slog.SetDefault(logger)
 
 	r := gin.Default()
+	r.GET("ping", func(ctx *gin.Context) {
+		ctx.JSON(
+			200,
+			map[string]any{"test": true})
+	})
 
 	// Initialize all routes
-	server.NewRoute(r, db)
+	// server.NewRoute(r, db)
 
 	// Start the server
 	r.Run("0.0.0.0:8080")
