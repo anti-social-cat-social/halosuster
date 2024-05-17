@@ -90,14 +90,7 @@ func ErrConflict(message string, err error) *GlobalError {
 	return baseError
 }
 
-// Return bad request error structure with customize message and error.
-func ErrBadRequest(message interface{}, err error) *GlobalError {
-	if err != nil {
-		logger.Info(err.Error())
-	} else {
-		logger.Info(message)
-	}
-
+func ErrBadRequest(message string, err error) *GlobalError {
 	baseError := ErrBase(http.StatusBadRequest, message, err)
 
 	return baseError

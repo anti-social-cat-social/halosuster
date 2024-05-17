@@ -1,10 +1,9 @@
 package server
 
 import (
-	"eniqlo/internal/customer"
-	"eniqlo/internal/product"
-	"eniqlo/internal/staff"
-	"eniqlo/pkg/response"
+	"1-cat-social/internal/auth"
+	"1-cat-social/internal/user"
+	"1-cat-social/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,18 +17,7 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 
 	router.GET("ping", pingHandler)
 
-	initializeStaffHandler(db, router)
-	initializeProductHandler(db, router)
-	initializeCustomerHandler(db, router)
-}
-
-func initializeStaffHandler(db *sqlx.DB, router *gin.RouterGroup) {
-	// Initialize all necessary dependecies
-	staffRepo := staff.NewStaffRepository(db)
-	staffUc := staff.NewStaffUsecase(staffRepo)
-	staffH := staff.NewStaffHandler(staffUc)
-
-	staffH.Router(router)
+	initializeAuthHandler(db, router)
 }
 
 func initializeProductHandler(db *sqlx.DB, router *gin.RouterGroup) {
