@@ -53,3 +53,9 @@ func ErrConflict(message string, err error) *GlobalError {
 
 	return baseError
 }
+
+func ErrBadRequest(message string, err error) *GlobalError {
+	baseError := ErrBase(http.StatusBadRequest, message, err)
+
+	return baseError
+}

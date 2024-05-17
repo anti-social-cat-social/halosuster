@@ -7,12 +7,18 @@ import (
 )
 
 type IUserUsecase interface {
-	FindByEmail(email string) (*User, *localError.GlobalError)
+	FindByNIP(nip string) (*User, *localError.GlobalError)
 	Create(dto UserDTO) (*User, *localError.GlobalError)
 }
 
 type userUsecase struct {
 	repo IUserRepository
+}
+
+func NewUserUsecase(repo IUserRepository) IUserUsecase {
+	return &userUsecase{
+		repo: repo,
+	}
 }
 
 // Create implements IUserUsecase.
@@ -28,8 +34,7 @@ func (u *userUsecase) Create(dto UserDTO) (*User, *localError.GlobalError) {
 	// Map DTO to user entity
 	// This used for storing data to database
 	user := User{
-		Name:  dto.Name,
-		Email: dto.Email,
+		Name: dto.Name,
 	}
 
 	// Generate user password
@@ -43,13 +48,7 @@ func (u *userUsecase) Create(dto UserDTO) (*User, *localError.GlobalError) {
 	return u.repo.Create(user)
 }
 
-// FindByEmail implements IUserUsecase.
-func (u *userUsecase) FindByEmail(email string) (*User, *localError.GlobalError) {
-	return u.repo.FindByEmail(email)
-}
-
-func NewUserUsecase(repo IUserRepository) IUserUsecase {
-	return &userUsecase{
-		repo: repo,
-	}
+// FindByNIP implements IUserUsecase.
+func (u *userUsecase) FindByNIP(nip string) (*User, *localError.GlobalError) {
+	return u.repo.FindByNIP(nip)
 }
