@@ -29,7 +29,7 @@ func main() {
 	r.GET("ping", func(ctx *gin.Context) {
 		ctx.JSON(
 			200,
-			map[string]any{"test": true, "data": "COba test"})
+			map[string]any{"test": true, "data": "COba test lagi"})
 	})
 
 	// Initialize all routes
