@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"1-cat-social/pkg/jwt"
-	"1-cat-social/pkg/response"
+	"eniqlo/pkg/jwt"
+	"eniqlo/pkg/response"
 	"errors"
 	"net/http"
 	"strings"

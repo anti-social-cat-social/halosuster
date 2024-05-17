@@ -8,7 +8,7 @@ This repo should be tested 7 day from now.
 Clone project
 
 ```bash
-  git clone https://github.com/anti-social-cat-social/cat-social.git my-project
+  git clone https://github.com/anti-social-cat-social/eniqlo.git my-project
   cd my-project
 ```
 
@@ -33,14 +33,14 @@ This service depends on `golang-migrate cli`. Install it first globally before d
     Create migration for the project using [Golang Migrate](https://github.com/golang-migrate/migrate)
     
     ```bash
-     migrate create -ext sql -dir database/migrations {create_users_cats}
+     migrate create -ext sql -dir database/migrations {table_name}
     ```
 
 4. Running migration
    Run the project migration to get updated with the table
 
 ```
-   migrate -path database/migration -database "postgres://testing:testing@localhost:5433/testing?sslmode=disable" -verbose up
+   migrate -path database/migrations -database "postgres://testing:testing@localhost:5433/testing?sslmode=disable" -verbose up
 ```
 
 5. Run the project
@@ -51,7 +51,7 @@ This service depends on `golang-migrate cli`. Install it first globally before d
     go run .
 ```
 
-5. Optional (Running Database Using Docker Compose For Development)
+5. Optional (Running database using docker-compose for development)
     If you want to run the database using docker compose, you can run this command to start the database
     
     ```bash

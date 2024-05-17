@@ -1,12 +1,10 @@
 package server
 
 import (
-	"1-cat-social/internal/auth"
-	catHandler "1-cat-social/internal/cat/handler"
-	cr "1-cat-social/internal/cat/repository"
-	catUseCase "1-cat-social/internal/cat/usecase"
-	"1-cat-social/internal/user"
-	"1-cat-social/pkg/response"
+	"eniqlo/internal/customer"
+	"eniqlo/internal/product"
+	"eniqlo/internal/staff"
+	"eniqlo/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,29 +18,36 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 
 	router.GET("ping", pingHandler)
 
-	initializeAuthHandler(db, router)
-	initializeCatHandler(router, db)
+	initializeStaffHandler(db, router)
+	initializeProductHandler(db, router)
+	initializeCustomerHandler(db, router)
 }
 
-func initializeCatHandler(router *gin.RouterGroup, db *sqlx.DB) {
-	catRepository := cr.NewCatRepository(db)
-	matchRepository := cr.NewMatchRepository(db)
-	catUsecase := catUseCase.NewCatUsecase(catRepository, matchRepository)
-	matchUsecase := catUseCase.NewMatchUsecase(catRepository, matchRepository)
-	catHandler := catHandler.NewCatHandler(catUsecase, matchUsecase)
-	catHandler.Router(router, db)
+func initializeStaffHandler(db *sqlx.DB, router *gin.RouterGroup) {
+	// Initialize all necessary dependecies
+	staffRepo := staff.NewStaffRepository(db)
+	staffUc := staff.NewStaffUsecase(staffRepo)
+	staffH := staff.NewStaffHandler(staffUc)
+
+	staffH.Router(router)
 }
 
-func initializeAuthHandler(db *sqlx.DB, router *gin.RouterGroup) {
-	// Initialize all ncessary dependecies
-	userRepo := user.NewUserRepository(db)
-	userUc := user.NewUserUsecase(userRepo)
-	authUc := auth.NewAuthUsecase(userUc)
-	authH := auth.NewAuthHandler(authUc)
+func initializeProductHandler(db *sqlx.DB, router *gin.RouterGroup) {
+	// Initialize all necessary dependecies
+	productRepo := product.NewProductRepository(db)
+	productUc := product.NewProductUsecase(productRepo)
+	productH := product.NewProductHandler(productUc)
 
-	// Do not forget
-	// Call auth router inside the handler
-	authH.Router(router)
+	productH.Router(router)
+}
+
+func initializeCustomerHandler(db *sqlx.DB, router *gin.RouterGroup) {
+	// Initialize all necessary dependecies
+	customerRepo := customer.NewCustomerRepository(db)
+	customerUc := customer.NewCustomerUsecase(customerRepo)
+	customerH := customer.NewCustomerHandler(customerUc)
+
+	customerH.Router(router)
 }
 
 func NoRouteHandler(ctx *gin.Context) {
