@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o main ./main.go
+RUN GOOS=linux GOARCH=amd64 go build -o main ./main.go
 
 ################################################### STAGE 2
 FROM alpine:latest
@@ -19,7 +19,7 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/main ./
-COPY --from=builder /app/.env ./
+# COPY --from=builder /app/.env ./
 
 ENV GIN_MODE=release
 
