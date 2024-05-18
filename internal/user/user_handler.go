@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type userHandler struct {
@@ -24,9 +25,38 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	// Grouping to give URL prefix
 	// ex : localhost/user
 	group := r.Group("user")
+	itAuth := group.Group("it")
 
 	// Utillize group to use global setting on group parent (if exists)
 	group.POST("nurse/login", h.NurseLogin)
+
+	// Auth route for IT
+	itAuth.POST("login")
+}
+
+func (h *userHandler) ITLogin(ctx *gin.Context) {
+	var request ITLoginDTO
+
+	// Create validator instance
+	validator := validator.New(validator.WithRequiredStructEnabled())
+
+	// Parse request
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(err.Error()))
+		return
+	}
+
+	// Validate input
+	err := validator.Struct(request)
+	if err != nil {
+		validationErr := validation.FormatValidation(err)
+
+		response.GenerateResponse(ctx, validationErr.Code, response.WithData(validationErr.Message))
+		ctx.Abort()
+		return
+	}
+
+	response.GenerateResponse(ctx, 200, response.WithData(request))
 }
 
 func (h *userHandler) NurseLogin(ctx *gin.Context) {
@@ -47,7 +77,7 @@ func (h *userHandler) NurseLogin(ctx *gin.Context) {
 	}
 
 	tokenData := localJwt.TokenData{
-		ID: nurse.ID,	
+		ID:   nurse.ID,
 		Name: nurse.Name,
 	}
 

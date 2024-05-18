@@ -1,18 +1,18 @@
 package user
 
 import (
-	localError "halosuster/pkg/error"
 	"database/sql"
 	"errors"
+	localError "halosuster/pkg/error"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 type IUserRepository interface {
-	FindByEmail(email string) (*User, *localError.GlobalError)
-	Create(entity User) (*User, *localError.GlobalError)
 	FindByNIP(nip string) (*User, *localError.GlobalError)
+	Create(entity User) (*User, *localError.GlobalError)
 }
 
 type userRepository struct {
@@ -43,37 +43,20 @@ func (u *userRepository) Create(entity User) (*User, *localError.GlobalError) {
 
 // Find user by email
 // This can be use for authentication process
-func (u *userRepository) FindByEmail(email string) (*User, *localError.GlobalError) {
-	var user User
-
-	if err := u.db.Get(&user, "SELECT * FROM users where email=$1", email); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, localError.ErrNotFound("User data not found", err)
-		}
-
-		return nil, &localError.GlobalError{
-			Code:    400,
-			Message: "Not found",
-			Error:   err,
-		}
-
-	}
-
-	return &user, nil
-}
-
-// Find user by NIP
-// This can be use for authentication process
 func (u *userRepository) FindByNIP(nip string) (*User, *localError.GlobalError) {
 	var user User
 
 	if err := u.db.Get(&user, "SELECT * FROM users where nip=$1", nip); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, localError.ErrNotFound("User not found", err)
+			return nil, localError.ErrNotFound("User data not found", err)
 		}
 
-		return nil, localError.ErrInternalServer(err.Error(), err)
-
+		log.Println(err)
+		return nil, &localError.GlobalError{
+			Code:    400,
+			Message: "Not found",
+			Error:   err,
+		}
 	}
 
 	return &user, nil

@@ -1,7 +1,7 @@
-package validator
+package validation
 
 import (
-	"3-halo-dek/pkg/helper"
+	"halosuster/pkg/helper"
 	"log"
 	"regexp"
 	"strconv"
@@ -32,7 +32,7 @@ func ValidNIP(nipPrefix string) validator.Func {
 	return func(fl validator.FieldLevel) bool {
 		value := fl.Field().String()
 
-		if len(value) != 13 {
+		if len(value) < 13 {
 			return false
 		}
 
