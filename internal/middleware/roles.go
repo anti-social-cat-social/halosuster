@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"halosuster/internal/user"
 	"halosuster/pkg/response"
 	"net/http"
 
@@ -10,7 +9,7 @@ import (
 
 // Check if user has a role from the token.
 // Use this on router as middleware
-func HasRoles(r user.UserRole) gin.HandlerFunc {
+func HasRoles(r string) gin.HandlerFunc {
 	// Check from user HasRoles
 	return func(ctx *gin.Context) {
 		if ctx.GetString("userRole") != string(r) {

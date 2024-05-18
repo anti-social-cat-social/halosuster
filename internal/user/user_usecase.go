@@ -15,6 +15,7 @@ type IUserUsecase interface {
 	FindByNIP(nip string) (*User, *localError.GlobalError)
 	NurseRegister(req NurseRegisterDTO) (User, *localError.GlobalError)
 	NurseAccess(req NurseAccessDTO, id string) *localError.GlobalError
+	GetUsers(query UserQueryParams) ([]User, *localError.GlobalError)
 }
 
 type userUsecase struct {
@@ -40,7 +41,7 @@ func (a *userUsecase) ITLogin(req ITLoginDTO) (*LoginResponse, *localError.Globa
 	}
 
 	// Check password
-	passErr := hasher.CheckPassword(*user.Password, req.Password)
+	passErr := hasher.CheckPassword(user.Password, req.Password)
 	if passErr != nil {
 		return nil, localError.ErrBadRequest(passErr.Error(), passErr)
 	}
@@ -71,7 +72,7 @@ func (a *userUsecase) NurseLogin(req NurseLoginDTO) (User, *localError.GlobalErr
 	}
 
 	// Compare user password with stored password
-	er := hasher.CheckPassword(*nurse.Password, req.Password)
+	er := hasher.CheckPassword(nurse.Password, req.Password)
 	if er != nil {
 		return User{}, localError.ErrBadRequest("Password not match", er)
 	}
@@ -172,4 +173,13 @@ func (a *userUsecase) NurseAccess(req NurseAccessDTO, id string) *localError.Glo
 	}
 
 	return nil
+}
+
+func (a *userUsecase) GetUsers(query UserQueryParams) ([]User, *localError.GlobalError) {
+	users, err := a.repo.FindAll(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
