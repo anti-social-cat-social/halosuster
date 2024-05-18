@@ -50,6 +50,7 @@ func (a *userUsecase) ITLogin(req ITLoginDTO) (*LoginResponse, *localError.Globa
 	tokenData := tokenizer.TokenData{
 		ID:   user.ID,
 		Name: user.Name,
+		Role: string(user.Role),
 	}
 
 	token, tokenErr := tokenizer.GenerateToken(tokenData)

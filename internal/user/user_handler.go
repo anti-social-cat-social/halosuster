@@ -1,7 +1,7 @@
 package user
 
 import (
-	localJwt "halosuster/pkg/jwt"
+	"halosuster/pkg/jwt"
 	"halosuster/pkg/response"
 	"halosuster/pkg/validation"
 	"net/http"
@@ -86,12 +86,13 @@ func (h *userHandler) NurseLogin(ctx *gin.Context) {
 		return
 	}
 
-	tokenData := localJwt.TokenData{
+	tokenData := jwt.TokenData{
 		ID:   nurse.ID,
 		Name: nurse.Name,
+		Role: string(nurse.Role),
 	}
 
-	token, er := localJwt.GenerateToken(tokenData)
+	token, er := jwt.GenerateToken(tokenData)
 	if er != nil {
 		response.GenerateResponse(ctx, http.StatusInternalServerError, response.WithMessage("Failed to generate token"))
 		return
