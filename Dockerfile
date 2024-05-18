@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . ./
 
-RUN go build -o main ./main.go
+RUN GOOS=linux GOARCH=amd64 go build -o main ./main.go
 
 ################################################### STAGE 2
 FROM alpine:latest
