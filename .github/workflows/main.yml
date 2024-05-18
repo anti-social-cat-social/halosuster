@@ -6,7 +6,8 @@ on:
 
 env:
   AWS_REGION: ap-southeast-1
-  ECR_REPO: 560918124458.dkr.ecr.ap-southeast-1.amazonaws.com/alrasyidlathif-repository
+  ECR_REPO: alrasyidlathif-repository
+  # ECR_REPO: 560918124458.dkr.ecr.ap-southeast-1.amazonaws.com/alrasyidlathif-repository
 
 permissions:
   contents: read
