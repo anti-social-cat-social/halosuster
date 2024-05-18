@@ -1,9 +1,8 @@
 package server
 
 import (
-	"1-cat-social/internal/auth"
-	"1-cat-social/internal/user"
-	"1-cat-social/pkg/response"
+	"halosuster/internal/user"
+	"halosuster/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,19 +16,16 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 
 	router.GET("ping", pingHandler)
 
-	initializeAuthHandler(db, router)
+	initializeUserHandler(db, router)
 }
 
-func initializeAuthHandler(db *sqlx.DB, router *gin.RouterGroup) {
-	// Initialize all ncessary dependecies
+func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
+	// Initialize all necessary dependecies
 	userRepo := user.NewUserRepository(db)
 	userUc := user.NewUserUsecase(userRepo)
-	authUc := auth.NewAuthUsecase(userUc)
-	authH := auth.NewAuthHandler(authUc)
+	userH := user.NewUserHandler(userUc)
 
-	// Do not forget
-	// Call auth router inside the handler
-	authH.Router(router)
+	userH.Router(router)
 }
 
 func NoRouteHandler(ctx *gin.Context) {

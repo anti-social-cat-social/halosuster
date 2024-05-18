@@ -1,28 +1,26 @@
-package auth
+package user
 
 import (
-	localJwt "1-cat-social/pkg/jwt"
-	"1-cat-social/pkg/response"
-	"1-cat-social/pkg/validation"
+	localJwt "halosuster/pkg/jwt"
+	"halosuster/pkg/response"
+	"halosuster/pkg/validation"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-// Auth handler structure for auth
-type authHandler struct {
-	uc IAuthUsecase
+type userHandler struct {
+	uc IUserUsecase
 }
 
-// Constructor for auth handler struct
-func NewAuthHandler(uc IAuthUsecase) *authHandler {
-	return &authHandler{
+// Constructor for user handler struct
+func NewUserHandler(uc IUserUsecase) *userHandler {
+	return &userHandler{
 		uc: uc,
 	}
 }
 
-// Router is required to wrap all user request by spesific path URL
-func (h *authHandler) Router(r *gin.RouterGroup) {
+func (h *userHandler) Router(r *gin.RouterGroup) {
 	// Grouping to give URL prefix
 	// ex : localhost/user
 	group := r.Group("user")
@@ -31,9 +29,11 @@ func (h *authHandler) Router(r *gin.RouterGroup) {
 	group.POST("nurse/login", h.NurseLogin)
 }
 
-func (h *authHandler) NurseLogin(ctx *gin.Context) {
-	var request NurseLoginRequest
+func (h *userHandler) NurseLogin(ctx *gin.Context) {
+	var request NurseLoginDTO
 
+	// Parse request body to DTO
+	// If error return error response
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		validatorMessage := validation.GenerateStructValidationError(err)
 		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(validatorMessage))
@@ -46,7 +46,12 @@ func (h *authHandler) NurseLogin(ctx *gin.Context) {
 		return
 	}
 
-	token, er := localJwt.GenerateToken(nurse)
+	tokenData := localJwt.TokenData{
+		ID: nurse.ID,	
+		Name: nurse.Name,
+	}
+
+	token, er := localJwt.GenerateToken(tokenData)
 	if er != nil {
 		response.GenerateResponse(ctx, http.StatusInternalServerError, response.WithMessage("Failed to generate token"))
 		return

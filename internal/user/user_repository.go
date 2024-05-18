@@ -1,7 +1,7 @@
 package user
 
 import (
-	localError "1-cat-social/pkg/error"
+	localError "halosuster/pkg/error"
 	"database/sql"
 	"errors"
 
