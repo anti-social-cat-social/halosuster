@@ -2,21 +2,57 @@ package user
 
 import "time"
 
+type UserRole string
+
+const (
+	IT    UserRole = "it"
+	Nurse UserRole = "nurse"
+)
+
 type User struct {
-	ID        string    `json:"id" db:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"-"`
-	CreatedAt time.Time `json:"-" db:"createdat"`
+	ID        				string     	`json:"id" db:"id"`
+	Role      				UserRole   	`json:"role" db:"role"`
+	NIP						string		`json:"nip" db:"nip"`
+	Name      				string    	`json:"name" db:"name"`
+	Password 				string    	`json:"password" db:"password"`
+	IdentityCardScanImg		string		`json:"identityCardScanImg" db:"identity_card_scan_img"`
+	CreatedAt				time.Time 	`json:"createdAt" db:"created_at"`
 }
 
-type UserDTO struct {
-	Name     string `json:"name" validate:"required,min=5,max=50,valid_name"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=5,max=15"`
+type ITRegisterDTO struct {
+	NIP			string `json:"nip" binding:"required,numeric,min=13,max=15"`
+	Name     	string `json:"name" binding:"required,min=5,max=50"`
+	Password	string `json:"password" binding:"required,min=5,max=33"`
 }
 
-type LoginDTO struct {
-	Email    string `json:"email" validate:"required,min=5,max=50,email"`
-	Password string `json:"password" validate:"required,min=5,max=15"`
+type NurseRegisterDTO struct {
+	NIP					string `json:"nip" binding:"required,numeric,min=13,max=15"`
+	Name     			string `json:"name" binding:"required,min=5,max=50"`
+	IdentityCardScanImg	string `json:"identityCardScanImg" binding:"required,url"`
+}
+
+type ITLoginDTO struct {
+	NIP			string `json:"nip" binding:"required,numeric,min=13,max=15"`
+	Password	string `json:"password" binding:"required,min=5,max=33"`
+}
+
+type NurseLoginDTO struct {
+	NIP			string `json:"nip" binding:"required,numeric,min=13,max=15"`
+	Password	string `json:"password" binding:"required,min=5,max=33"`
+}
+
+type NuseLoginResponse struct {
+	UserId      string `json:"userId"`
+	NIP         string `json:"nip"`
+	Name        string `json:"name"`
+	AccessToken string `json:"accessToken"`
+}
+
+func FormatNurseLoginResponse(nurse User, token string) NuseLoginResponse {
+	return NuseLoginResponse{
+		UserId:      nurse.ID,
+		NIP:         nurse.NIP,
+		Name:        nurse.Name,
+		AccessToken: token,
+	}
 }

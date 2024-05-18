@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"1-cat-social/pkg/jwt"
-	"1-cat-social/pkg/response"
+	"halosuster/pkg/jwt"
+	"halosuster/pkg/response"
 	"errors"
 	"net/http"
 	"strings"

@@ -1,12 +1,8 @@
 package server
 
 import (
-	"1-cat-social/internal/auth"
-	catHandler "1-cat-social/internal/cat/handler"
-	cr "1-cat-social/internal/cat/repository"
-	catUseCase "1-cat-social/internal/cat/usecase"
-	"1-cat-social/internal/user"
-	"1-cat-social/pkg/response"
+	"halosuster/internal/user"
+	"halosuster/pkg/response"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,29 +16,16 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 
 	router.GET("ping", pingHandler)
 
-	initializeAuthHandler(db, router)
-	initializeCatHandler(router, db)
+	initializeUserHandler(db, router)
 }
 
-func initializeCatHandler(router *gin.RouterGroup, db *sqlx.DB) {
-	catRepository := cr.NewCatRepository(db)
-	matchRepository := cr.NewMatchRepository(db)
-	catUsecase := catUseCase.NewCatUsecase(catRepository, matchRepository)
-	matchUsecase := catUseCase.NewMatchUsecase(catRepository, matchRepository)
-	catHandler := catHandler.NewCatHandler(catUsecase, matchUsecase)
-	catHandler.Router(router, db)
-}
-
-func initializeAuthHandler(db *sqlx.DB, router *gin.RouterGroup) {
-	// Initialize all ncessary dependecies
+func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
+	// Initialize all necessary dependecies
 	userRepo := user.NewUserRepository(db)
 	userUc := user.NewUserUsecase(userRepo)
-	authUc := auth.NewAuthUsecase(userUc)
-	authH := auth.NewAuthHandler(authUc)
+	userH := user.NewUserHandler(userUc)
 
-	// Do not forget
-	// Call auth router inside the handler
-	authH.Router(router)
+	userH.Router(router)
 }
 
 func NoRouteHandler(ctx *gin.Context) {

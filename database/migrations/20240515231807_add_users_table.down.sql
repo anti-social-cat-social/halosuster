@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS users;
 
 DROP INDEX IF EXISTS idx_users_created_at CASCADE;
+DROP INDEX IF EXISTS idx_users_nip CASCADE;
 
 DROP TYPE IF EXISTS user_role;

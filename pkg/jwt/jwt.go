@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"1-cat-social/internal/user"
 	"errors"
 	"os"
 	"time"
@@ -26,18 +25,23 @@ func getKey() []byte {
 	return []byte(key)
 }
 
-func GenerateToken(userData user.User) (string, error) {
+type TokenData struct {
+	ID		string
+	Name	string
+}
+
+func GenerateToken(data TokenData) (string, error) {
 	// Set expiration time
 	expirationTime = 8
 
 	claims := CustomClaim{
-		userData.ID,
+		data.ID,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expirationTime) * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    "Cat social media",
-			Subject:   userData.Name,
-			ID:        userData.ID,
+			Issuer:    "halosuster",
+			Subject:   data.Name,
+			ID:        data.ID,
 		},
 	}
 
@@ -51,13 +55,13 @@ func GenerateToken(userData user.User) (string, error) {
 	return s, nil
 }
 
-// Validate token from user
-func ValidateToken(userToken string) (*CustomClaim, error) {
+// Validate token
+func ValidateToken(tokenChecked string) (*CustomClaim, error) {
 	// Get user token from environment variable
 	tokenString := getKey()
 
 	// Parse token
-	token, err := jwt.ParseWithClaims(userToken, &CustomClaim{}, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenChecked, &CustomClaim{}, func(t *jwt.Token) (interface{}, error) {
 		// Validate the token alg
 		// If alg is not valid, return error
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {

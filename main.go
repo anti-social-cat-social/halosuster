@@ -1,9 +1,9 @@
 package main
 
 import (
-	"1-cat-social/config"
-	"1-cat-social/server"
 	"fmt"
+	"halosuster/config"
+	"halosuster/server"
 	"log"
 	"log/slog"
 	"os"

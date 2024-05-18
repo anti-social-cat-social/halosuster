@@ -1,7 +1,7 @@
 package user
 
 import (
-	localError "1-cat-social/pkg/error"
+	localError "halosuster/pkg/error"
 	"database/sql"
 	"errors"
 
@@ -12,10 +12,17 @@ import (
 type IUserRepository interface {
 	FindByEmail(email string) (*User, *localError.GlobalError)
 	Create(entity User) (*User, *localError.GlobalError)
+	FindByNIP(nip string) (*User, *localError.GlobalError)
 }
 
 type userRepository struct {
 	db *sqlx.DB
+}
+
+func NewUserRepository(db *sqlx.DB) IUserRepository {
+	return &userRepository{
+		db: db,
+	}
 }
 
 // Store new ueser to database
@@ -55,8 +62,19 @@ func (u *userRepository) FindByEmail(email string) (*User, *localError.GlobalErr
 	return &user, nil
 }
 
-func NewUserRepository(db *sqlx.DB) IUserRepository {
-	return &userRepository{
-		db: db,
+// Find user by NIP
+// This can be use for authentication process
+func (u *userRepository) FindByNIP(nip string) (*User, *localError.GlobalError) {
+	var user User
+
+	if err := u.db.Get(&user, "SELECT * FROM users where nip=$1", nip); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, localError.ErrNotFound("User not found", err)
+		}
+
+		return nil, localError.ErrInternalServer(err.Error(), err)
+
 	}
+
+	return &user, nil
 }
