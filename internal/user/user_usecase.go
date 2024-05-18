@@ -15,6 +15,7 @@ type IUserUsecase interface {
 	FindByNIP(nip string) (*User, *localError.GlobalError)
 	NurseRegister(req NurseRegisterDTO) (User, *localError.GlobalError)
 	NurseAccess(req NurseAccessDTO, id string) *localError.GlobalError
+	GetUsers(query UserQueryParams) ([]User, *localError.GlobalError)
 	Delete(id string) *localError.GlobalError
 }
 
@@ -173,6 +174,15 @@ func (a *userUsecase) NurseAccess(req NurseAccessDTO, id string) *localError.Glo
 	}
 
 	return nil
+}
+
+func (a *userUsecase) GetUsers(query UserQueryParams) ([]User, *localError.GlobalError) {
+	users, err := a.repo.FindAll(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
 
 func (uc *userUsecase) Delete(id string) *localError.GlobalError {

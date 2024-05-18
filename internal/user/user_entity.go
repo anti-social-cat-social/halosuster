@@ -79,3 +79,37 @@ func FormatNurseRegisterResponse(nurse User) NurseRegisterResponse {
 		Name:   nurse.Name,
 	}
 }
+
+type UserQueryParams struct {
+	UserID    string `form:"userId"`
+	Limit     int    `form:"limit"`
+	Offset    int    `form:"offset"`
+	Name      string `form:"name"`
+	NIP       string `form:"nip"`
+	Role      string `form:"role"`
+	CreatedAt string `form:"createdAt"`
+}
+
+type UserResponse struct {
+	UserId    string `json:"userId"`
+	NIP       string `json:"nip"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"createdAt"`
+}
+
+func FormatUserResponse(user User) UserResponse {
+	return UserResponse{
+		UserId:    user.ID,
+		NIP:       user.NIP,
+		Name:      user.Name,
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+func FormatUsersResponse(users []User) []UserResponse {
+	usersResponse := []UserResponse{}
+	for _, user := range users {
+		usersResponse = append(usersResponse, FormatUserResponse(user))
+	}
+	return usersResponse
+}

@@ -36,6 +36,8 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	itAuth.POST("login", h.ITLogin)
 	group.POST("nurse/register", h.NurseRegister)
 	group.POST("nurse/:id/access", h.NurseAccess)
+
+	group.GET("", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.GetUsers)
 	nurseAuth.DELETE("/:id", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.Delete)
 }
 
@@ -147,6 +149,24 @@ func (h *userHandler) NurseAccess(ctx *gin.Context) {
 	}
 
 	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("User given access successfully!"))
+}
+
+func (h *userHandler) GetUsers(ctx *gin.Context) {
+	var queryParam UserQueryParams
+	if err := ctx.ShouldBindQuery(&queryParam); err != nil {
+		validatorMessage := validation.GenerateStructValidationError(err)
+		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(validatorMessage))
+		return
+	}
+
+	users, err := h.uc.GetUsers(queryParam)
+	if err != nil {
+		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
+		return
+	}
+
+	res := FormatUsersResponse(users)
+	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("success"), response.WithData(res))
 }
 
 func (h *userHandler) Delete(ctx *gin.Context) {

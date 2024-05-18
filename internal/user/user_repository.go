@@ -3,8 +3,10 @@ package user
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	localError "halosuster/pkg/error"
 	"log"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -15,6 +17,7 @@ type IUserRepository interface {
 	Create(entity User) (*User, *localError.GlobalError)
 	FindByNIP(nip string) (*User, *localError.GlobalError)
 	UpdateById(id string, key string, value string) *localError.GlobalError
+	FindAll(query UserQueryParams) ([]User, *localError.GlobalError)
 	Delete(id string) *localError.GlobalError
 }
 
@@ -105,6 +108,46 @@ func (u *userRepository) UpdateById(id string, key string, value string) *localE
 	}
 
 	return nil
+}
+
+func (u *userRepository) FindAll(query UserQueryParams) ([]User, *localError.GlobalError) {
+	var users []User
+
+	q := "SELECT * FROM users WHERE 1=1"
+	if query.UserID != "" {
+		q += fmt.Sprintf(" AND id = '%s'", query.UserID)
+	}
+	if query.Name != "" {
+		q += fmt.Sprintf(" AND name like '%%%s%%'", query.Name)
+	}
+	if query.NIP != "" {
+		q += fmt.Sprintf(" AND nip like '%%%s%%'", query.NIP)
+	}
+	if query.Role == "it" || query.Role == "nurse" {
+		q += fmt.Sprintf(" AND role = '%s'", query.Role)
+	} else if query.Role != "" {
+		q += " AND 1=0"
+	}
+	if strings.ToLower(query.CreatedAt) == "asc" || strings.ToLower(query.CreatedAt) == "desc" {
+		q += " ORDER BY created_at " + query.CreatedAt
+	}
+	if query.Limit != 0 {
+		q += fmt.Sprintf(" LIMIT %d", query.Limit)
+	} else {
+		q += " LIMIT 10"
+	}
+	if query.Offset != 0 {
+		q += fmt.Sprintf(" OFFSET %d", query.Offset)
+	} else {
+		q += " OFFSET 0"
+	}
+
+	err := u.db.Select(&users, q)
+	if err != nil {
+		return nil, localError.ErrInternalServer(err.Error(), err)
+	}
+
+	return users, nil
 }
 
 func (u *userRepository) Delete(id string) *localError.GlobalError {
