@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"halosuster/config"
 	"halosuster/server"
-	"fmt"
 	"log"
 	"log/slog"
 	"os"

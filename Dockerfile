@@ -19,7 +19,6 @@ FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /app/main ./
-# COPY --from=builder /app/.env ./
 
 ENV GIN_MODE=release
 
