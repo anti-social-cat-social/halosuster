@@ -10,15 +10,19 @@ import (
 
 // Check if user has a role from the token.
 // Use this on router as middleware
-func HasRoles(r user.UserRole) gin.HandlerFunc {
+func HasRoles(r ...user.UserRole) gin.HandlerFunc {
 	// Check from user HasRoles
 	return func(ctx *gin.Context) {
-		if ctx.GetString("userRole") != string(r) {
-			response.GenerateResponse(ctx, http.StatusUnauthorized, response.WithMessage("User not permitted to do this operation"))
-			ctx.Abort()
-			return
+		role := ctx.GetString("userRole")
+
+		for _, v := range r {
+			if role == string(v) {
+				ctx.Next()
+				return
+			}
 		}
 
-		ctx.Next()
+		response.GenerateResponse(ctx, http.StatusUnauthorized, response.WithMessage("User not permitted to do this operation"))
+		ctx.Abort()
 	}
 }
