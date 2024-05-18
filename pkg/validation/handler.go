@@ -1,9 +1,8 @@
 package validation
 
 import (
-	localError "halosuster/pkg/error"
 	"errors"
-	"log"
+	localError "halosuster/pkg/error"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,23 +28,6 @@ func GenerateStructValidationError(err error) []validationError {
 	}
 
 	return result
-}
-
-func ValidNameValidator(fl validator.FieldLevel) bool {
-	value := fl.Field().String()
-
-	// Improved regex pattern:
-	// - Allows spaces, hyphens, and apostrophes within a name part
-	// - Uses a character class for allowed characters (letters, spaces, hyphens, apostrophes)
-	pattern := `^[[:alpha:]]+(?: [[:alpha:]]+|[-\'][:alpha:]]+)*$`
-
-	// COmpile regex
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		log.Println("Error compiling regex")
-	}
-
-	return re.MatchString(value)
 }
 
 type ErrorMsg struct {
@@ -109,8 +91,10 @@ func FormatValidation(err error) *localError.GlobalError {
 	return localError.ErrBadRequest(result, nil)
 }
 
-var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+var (
+	matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+	matchAllCap   = regexp.MustCompile("([a-z0-9])([A-Z])")
+)
 
 func ToSnakeCase(str string) string {
 	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")

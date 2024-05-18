@@ -11,6 +11,7 @@ import (
 // Custom claim used to generate token
 type CustomClaim struct {
 	Uuid string
+	Role string
 	jwt.RegisteredClaims
 }
 
@@ -26,8 +27,9 @@ func getKey() []byte {
 }
 
 type TokenData struct {
-	ID		string
-	Name	string
+	ID   string
+	Name string
+	Role string
 }
 
 func GenerateToken(data TokenData) (string, error) {
@@ -36,6 +38,7 @@ func GenerateToken(data TokenData) (string, error) {
 
 	claims := CustomClaim{
 		data.ID,
+		data.Role,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expirationTime) * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

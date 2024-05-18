@@ -1,9 +1,9 @@
 package user
 
 import (
-	localError "halosuster/pkg/error"
 	"database/sql"
 	"errors"
+	localError "halosuster/pkg/error"
 	"log"
 
 	"github.com/google/uuid"
@@ -33,7 +33,7 @@ func (u *userRepository) Create(entity User) (*User, *localError.GlobalError) {
 	userId := uuid.NewString()
 	entity.ID = userId
 
-	var q = "";
+	q := ""
 	if string(entity.Role) == "nurse" {
 		q = "INSERT INTO users (id, nip, role, name, identity_card_scan_img) values (:id, :nip, :role, :name, :identity_card_scan_img);"
 	} else if string(entity.Role) == "it" {
@@ -80,11 +80,15 @@ func (u *userRepository) FindByNIP(nip string) (*User, *localError.GlobalError) 
 
 	if err := u.db.Get(&user, "SELECT * FROM users where nip=$1", nip); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, localError.ErrNotFound("User not found", err)
+			return nil, localError.ErrNotFound("User data not found", err)
 		}
 
-		return nil, localError.ErrInternalServer(err.Error(), err)
-
+		log.Println(err)
+		return nil, &localError.GlobalError{
+			Code:    400,
+			Message: "Not found",
+			Error:   err,
+		}
 	}
 
 	return &user, nil

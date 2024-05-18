@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"errors"
 	"halosuster/pkg/jwt"
 	"halosuster/pkg/response"
-	"errors"
 	"net/http"
 	"strings"
 
@@ -37,6 +37,7 @@ func UseJwtAuth(ctx *gin.Context) {
 	// After token successfully validated,
 	// set UserID from token to current context
 	ctx.Set("userID", result.Uuid)
+	ctx.Set("userRole", result.Role)
 
 	// Next if passed middleware
 	ctx.Next()
