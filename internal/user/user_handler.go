@@ -36,7 +36,7 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	itAuth.POST("login", h.ITLogin)
 	group.POST("nurse/register", h.NurseRegister)
 	group.POST("nurse/:id/access", h.NurseAccess)
-	nurseAuth.DELETE("/:id", h.Delete).Use(middleware.HasRoles(string(IT)))
+	nurseAuth.DELETE("/:id", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.Delete)
 }
 
 func (h *userHandler) ITLogin(ctx *gin.Context) {
