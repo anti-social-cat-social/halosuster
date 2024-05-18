@@ -31,7 +31,7 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	group.POST("nurse/login", h.NurseLogin)
 
 	// Auth route for IT
-	itAuth.POST("login")
+	itAuth.POST("login", h.ITLogin)
 }
 
 func (h *userHandler) ITLogin(ctx *gin.Context) {
@@ -43,10 +43,13 @@ func (h *userHandler) ITLogin(ctx *gin.Context) {
 	// Parse request
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(err.Error()))
+		ctx.Abort()
 		return
 	}
 
 	// Validate input
+	validator.RegisterValidation("valid_nip", validation.ValidNIP(string(ITPrefix)))
+
 	err := validator.Struct(request)
 	if err != nil {
 		validationErr := validation.FormatValidation(err)
@@ -56,7 +59,14 @@ func (h *userHandler) ITLogin(ctx *gin.Context) {
 		return
 	}
 
-	response.GenerateResponse(ctx, 200, response.WithData(request))
+	resp, respError := h.uc.ITLogin(request)
+	if respError != nil {
+		response.GenerateResponse(ctx, respError.Code, response.WithMessage(respError.Error.Error()))
+		ctx.Abort()
+		return
+	}
+
+	response.GenerateResponse(ctx, 200, response.WithData(*resp))
 }
 
 func (h *userHandler) NurseLogin(ctx *gin.Context) {
@@ -87,7 +97,7 @@ func (h *userHandler) NurseLogin(ctx *gin.Context) {
 		return
 	}
 
-	res := FormatNurseLoginResponse(nurse, token)
+	res := FormatLoginResponse(nurse, token)
 
 	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("User loggedin successfully!"), response.WithData(res))
 }

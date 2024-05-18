@@ -4,9 +4,14 @@ import "time"
 
 type UserRole string
 
+type NIPPrefix string
+
 const (
 	IT    UserRole = "it"
 	Nurse UserRole = "nurse"
+
+	ITPrefix    NIPPrefix = "615"
+	NursePrefix NIPPrefix = "103"
 )
 
 type User struct {
@@ -32,7 +37,7 @@ type NurseRegisterDTO struct {
 }
 
 type ITLoginDTO struct {
-	NIP      string `json:"nip" validate:"required,min=13"`
+	NIP      string `json:"nip" validate:"required,min=13,valid_nip"`
 	Password string `json:"password" binding:"required,min=5,max=33"`
 }
 
@@ -41,15 +46,15 @@ type NurseLoginDTO struct {
 	Password string `json:"password" binding:"required,min=5,max=33"`
 }
 
-type NuseLoginResponse struct {
+type LoginResponse struct {
 	UserId      string `json:"userId"`
 	NIP         string `json:"nip"`
 	Name        string `json:"name"`
 	AccessToken string `json:"accessToken"`
 }
 
-func FormatNurseLoginResponse(nurse User, token string) NuseLoginResponse {
-	return NuseLoginResponse{
+func FormatLoginResponse(nurse User, token string) LoginResponse {
+	return LoginResponse{
 		UserId:      nurse.ID,
 		NIP:         nurse.NIP,
 		Name:        nurse.Name,
