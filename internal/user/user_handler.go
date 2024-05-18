@@ -1,6 +1,7 @@
 package user
 
 import (
+	"halosuster/internal/middleware"
 	"halosuster/pkg/jwt"
 	"halosuster/pkg/response"
 	"halosuster/pkg/validation"
@@ -26,6 +27,7 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	// ex : localhost/user
 	group := r.Group("user")
 	itAuth := group.Group("it")
+	nurseAuth := group.Group("nurse")
 
 	// Utillize group to use global setting on group parent (if exists)
 	group.POST("nurse/login", h.NurseLogin)
@@ -34,6 +36,7 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	itAuth.POST("login", h.ITLogin)
 	group.POST("nurse/register", h.NurseRegister)
 	group.POST("nurse/:id/access", h.NurseAccess)
+	nurseAuth.DELETE("/:id", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.Delete)
 }
 
 func (h *userHandler) ITLogin(ctx *gin.Context) {
@@ -144,4 +147,16 @@ func (h *userHandler) NurseAccess(ctx *gin.Context) {
 	}
 
 	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("User given access successfully!"))
+}
+
+func (h *userHandler) Delete(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	err := h.uc.Delete(id)
+	if err != nil {
+		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
+		return
+	}
+
+	response.GenerateResponse(ctx, 200)
 }

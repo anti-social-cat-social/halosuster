@@ -15,6 +15,7 @@ type IUserRepository interface {
 	Create(entity User) (*User, *localError.GlobalError)
 	FindByNIP(nip string) (*User, *localError.GlobalError)
 	UpdateById(id string, key string, value string) *localError.GlobalError
+	Delete(id string) *localError.GlobalError
 }
 
 type userRepository struct {
@@ -99,6 +100,18 @@ func (u *userRepository) UpdateById(id string, key string, value string) *localE
 
 	query := "UPDATE users SET " + key + " = $1 WHERE id = $2;"
 	_, err = u.db.Exec(query, value, id)
+	if err != nil {
+		return localError.ErrInternalServer(err.Error(), err)
+	}
+
+	return nil
+}
+
+func (u *userRepository) Delete(id string) *localError.GlobalError {
+	var err error
+
+	query := "DELETE from users where id = $1;"
+	_, err = u.db.Exec(query, id)
 	if err != nil {
 		return localError.ErrInternalServer(err.Error(), err)
 	}

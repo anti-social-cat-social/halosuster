@@ -15,6 +15,7 @@ type IUserUsecase interface {
 	FindByNIP(nip string) (*User, *localError.GlobalError)
 	NurseRegister(req NurseRegisterDTO) (User, *localError.GlobalError)
 	NurseAccess(req NurseAccessDTO, id string) *localError.GlobalError
+	Delete(id string) *localError.GlobalError
 }
 
 type userUsecase struct {
@@ -40,7 +41,7 @@ func (a *userUsecase) ITLogin(req ITLoginDTO) (*LoginResponse, *localError.Globa
 	}
 
 	// Check password
-	passErr := hasher.CheckPassword(*user.Password, req.Password)
+	passErr := hasher.CheckPassword(user.Password, req.Password)
 	if passErr != nil {
 		return nil, localError.ErrBadRequest(passErr.Error(), passErr)
 	}
@@ -71,7 +72,7 @@ func (a *userUsecase) NurseLogin(req NurseLoginDTO) (User, *localError.GlobalErr
 	}
 
 	// Compare user password with stored password
-	er := hasher.CheckPassword(*nurse.Password, req.Password)
+	er := hasher.CheckPassword(nurse.Password, req.Password)
 	if er != nil {
 		return User{}, localError.ErrBadRequest("Password not match", er)
 	}
@@ -167,6 +168,25 @@ func (a *userUsecase) NurseAccess(req NurseAccessDTO, id string) *localError.Glo
 	}
 
 	err = a.repo.UpdateById(id, "password", password)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *userUsecase) Delete(id string) *localError.GlobalError {
+	// Check if user not actually exists
+	user, err := uc.repo.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	if user.Role != Nurse {
+		return localError.ErrNotFound("Non Nurse user can not be deleted", errors.New("non nurse accoun can't be deleted"))
+	}
+
+	err = uc.repo.Delete(user.ID)
 	if err != nil {
 		return err
 	}
