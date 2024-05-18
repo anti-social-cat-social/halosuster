@@ -19,7 +19,7 @@ type User struct {
 	Role                UserRole  `json:"role" db:"role"`
 	NIP                 string    `json:"nip" db:"nip"`
 	Name                string    `json:"name" db:"name"`
-	Password            string    `json:"password" db:"password"`
+	Password            *string   `json:"password" db:"password"`
 	IdentityCardScanImg string    `json:"identityCardScanImg" db:"identity_card_scan_img"`
 	CreatedAt           time.Time `json:"createdAt" db:"created_at"`
 }
@@ -34,6 +34,10 @@ type NurseRegisterDTO struct {
 	NIP                 string `json:"nip" binding:"required,numeric,min=13,max=15"`
 	Name                string `json:"name" binding:"required,min=5,max=50"`
 	IdentityCardScanImg string `json:"identityCardScanImg" binding:"required,url"`
+}
+
+type NurseAccessDTO struct {
+	Password string `json:"password" binding:"required,min=5,max=33"`
 }
 
 type ITLoginDTO struct {
@@ -59,5 +63,19 @@ func FormatLoginResponse(nurse User, token string) LoginResponse {
 		NIP:         nurse.NIP,
 		Name:        nurse.Name,
 		AccessToken: token,
+	}
+}
+
+type NurseRegisterResponse struct {
+	UserId string `json:"userId"`
+	NIP    string `json:"nip"`
+	Name   string `json:"name"`
+}
+
+func FormatNurseRegisterResponse(nurse User) NurseRegisterResponse {
+	return NurseRegisterResponse{
+		UserId: nurse.ID,
+		NIP:    nurse.NIP,
+		Name:   nurse.Name,
 	}
 }
