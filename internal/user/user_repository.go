@@ -18,6 +18,7 @@ type IUserRepository interface {
 	FindByNIP(nip string) (*User, *localError.GlobalError)
 	UpdateById(id string, key string, value string) *localError.GlobalError
 	FindAll(query UserQueryParams) ([]User, *localError.GlobalError)
+	Delete(id string) *localError.GlobalError
 }
 
 type userRepository struct {
@@ -147,4 +148,16 @@ func (u *userRepository) FindAll(query UserQueryParams) ([]User, *localError.Glo
 	}
 
 	return users, nil
+}
+
+func (u *userRepository) Delete(id string) *localError.GlobalError {
+	var err error
+
+	query := "DELETE from users where id = $1;"
+	_, err = u.db.Exec(query, id)
+	if err != nil {
+		return localError.ErrInternalServer(err.Error(), err)
+	}
+
+	return nil
 }

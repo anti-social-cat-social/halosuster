@@ -16,6 +16,7 @@ type IUserUsecase interface {
 	NurseRegister(req NurseRegisterDTO) (User, *localError.GlobalError)
 	NurseAccess(req NurseAccessDTO, id string) *localError.GlobalError
 	GetUsers(query UserQueryParams) ([]User, *localError.GlobalError)
+	Delete(id string) *localError.GlobalError
 }
 
 type userUsecase struct {
@@ -182,4 +183,23 @@ func (a *userUsecase) GetUsers(query UserQueryParams) ([]User, *localError.Globa
 	}
 
 	return users, nil
+}
+
+func (uc *userUsecase) Delete(id string) *localError.GlobalError {
+	// Check if user not actually exists
+	user, err := uc.repo.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	if user.Role != Nurse {
+		return localError.ErrNotFound("Non Nurse user can not be deleted", errors.New("non nurse accoun can't be deleted"))
+	}
+
+	err = uc.repo.Delete(user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

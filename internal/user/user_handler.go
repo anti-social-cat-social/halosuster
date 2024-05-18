@@ -27,6 +27,7 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	// ex : localhost/user
 	group := r.Group("user")
 	itAuth := group.Group("it")
+	nurseAuth := group.Group("nurse")
 
 	// Utillize group to use global setting on group parent (if exists)
 	group.POST("nurse/login", h.NurseLogin)
@@ -36,7 +37,8 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	group.POST("nurse/register", h.NurseRegister)
 	group.POST("nurse/:id/access", h.NurseAccess)
 
-	group.GET("", middleware.UseJwtAuth, middleware.HasRoles("it"), h.GetUsers)
+	group.GET("", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.GetUsers)
+	nurseAuth.DELETE("/:id", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.Delete)
 }
 
 func (h *userHandler) ITLogin(ctx *gin.Context) {
@@ -164,6 +166,17 @@ func (h *userHandler) GetUsers(ctx *gin.Context) {
 	}
 
 	res := FormatUsersResponse(users)
+	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("success"), response.WithData(res))
+}
 
-	response.GenerateResponse(ctx, http.StatusOK, response.WithData(res))
+func (h *userHandler) Delete(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	err := h.uc.Delete(id)
+	if err != nil {
+		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
+		return
+	}
+
+	response.GenerateResponse(ctx, 200)
 }
