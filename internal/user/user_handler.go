@@ -27,6 +27,8 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 
 	// Utillize group to use global setting on group parent (if exists)
 	group.POST("nurse/login", h.NurseLogin)
+	group.POST("nurse/register", h.NurseRegister)
+	group.POST("nurse/:id/access", h.NurseAccess)
 }
 
 func (h *userHandler) NurseLogin(ctx *gin.Context) {
@@ -60,4 +62,45 @@ func (h *userHandler) NurseLogin(ctx *gin.Context) {
 	res := FormatNurseLoginResponse(nurse, token)
 
 	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("User loggedin successfully!"), response.WithData(res))
+}
+
+func (h *userHandler) NurseRegister(ctx *gin.Context) {
+	var request NurseRegisterDTO
+
+	// Parse request body to DTO
+	// If error return error response
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		validatorMessage := validation.GenerateStructValidationError(err)
+		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(validatorMessage))
+		return
+	}
+
+	nurse, err := h.uc.NurseRegister(request)
+	if err != nil {
+		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
+		return
+	}
+
+	res := FormatNurseRegisterResponse(nurse)
+
+	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("User register successfully!"), response.WithData(res))
+}
+
+func (h *userHandler) NurseAccess(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	var request NurseAccessDTO
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		validatorMessage := validation.GenerateStructValidationError(err)
+		response.GenerateResponse(ctx, http.StatusBadRequest, response.WithMessage("Any input is not valid"), response.WithData(validatorMessage))
+		return
+	}
+
+	err := h.uc.NurseAccess(request, id)
+	if err != nil {
+		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
+		return
+	}
+
+	response.GenerateResponse(ctx, http.StatusOK, response.WithMessage("User given access successfully!"))
 }
