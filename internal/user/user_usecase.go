@@ -5,12 +5,14 @@ import (
 	"halosuster/pkg/hasher"
 	"strconv"
 	"time"
+	"errors"
 )
 
 type IUserUsecase interface {
 	NurseLogin(req NurseLoginDTO) (User, *localError.GlobalError)
 	FindByNIP(nip string) (*User, *localError.GlobalError)
-	// Create(dto UserDTO) (*User, *localError.GlobalError)
+	NurseRegister(req NurseRegisterDTO) (User, *localError.GlobalError)
+	NurseAccess(req NurseAccessDTO, id string) *localError.GlobalError
 }
 
 type userUsecase struct {
@@ -49,10 +51,13 @@ func (u *userUsecase) FindByNIP(nip string) (*User, *localError.GlobalError) {
 	return u.repo.FindByNIP(nip)
 }
 
-
 func validateNIP(nip string, role string) bool {
 	// Check if first three digits are '303'
 	if role == "nurse" && nip[:3] != "303" {
+		return false
+	}
+
+	if role == "it" && nip[:3] != "615" {
 		return false
 	}
 
@@ -77,9 +82,61 @@ func validateNIP(nip string, role string) bool {
 
 	// Check if the eleventh and thirteenth digits are within range
 	randomDigits, _ := strconv.Atoi(nip[10:])
-	if randomDigits < 0 || randomDigits > 999 {
+	if randomDigits < 0 || randomDigits > 99999 {
 		return false
 	}
 
 	return true
+}
+
+// NurseRegister implements IUserUsecase.
+func (a *userUsecase) NurseRegister(req NurseRegisterDTO) (User, *localError.GlobalError) {
+	if !validateNIP(req.NIP, "nurse") {
+		return User{}, localError.ErrNotFound("NIP not valid", nil)
+	}
+
+	// Search user by NIP
+	existedNurse, _ := a.repo.FindByNIP(req.NIP)
+	if existedNurse != nil {
+		return User{}, localError.ErrConflict("Nurse already exists", nil)
+	}
+
+	nurse := User{
+		NIP:					req.NIP,
+		Name:					req.Name,
+		IdentityCardScanImg:	req.IdentityCardScanImg,
+		Role:					UserRole("nurse"),
+	}
+
+	registeredNurse, err := a.repo.Create(nurse)
+	if err != nil {
+		return User{}, err
+	}
+
+	return *registeredNurse, nil
+}
+
+func (a *userUsecase) NurseAccess(req NurseAccessDTO, id string) *localError.GlobalError {
+	// Search user by ID
+	nurse, err := a.repo.FindById(id)
+	if err != nil {
+		return err
+	}
+
+	if nurse.Role != "nurse" {
+		return localError.ErrNotFound("user not found", errors.New("user not found"))
+	}
+
+	// Generate user password
+	password, errHash := hasher.HashPassword(req.Password)
+	if errHash != nil {
+		return localError.ErrInternalServer(errHash.Error(), errHash)
+	}
+
+	err = a.repo.UpdateById(id, "password", password)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
