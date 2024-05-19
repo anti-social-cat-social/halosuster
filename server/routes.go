@@ -2,6 +2,7 @@ package server
 
 import (
 	"halosuster/internal/user"
+	"halosuster/internal/image"
 	"halosuster/pkg/response"
 	"net/http"
 
@@ -17,6 +18,7 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 	router.GET("ping", pingHandler)
 
 	initializeUserHandler(db, router)
+	initializeImageHandler(router)
 }
 
 func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
@@ -26,6 +28,12 @@ func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
 	userH := user.NewUserHandler(userUc)
 
 	userH.Router(router)
+}
+
+func initializeImageHandler(router *gin.RouterGroup) {
+	imageH := image.NewImageHandler()
+
+	imageH.Router(router)
 }
 
 func NoRouteHandler(ctx *gin.Context) {
