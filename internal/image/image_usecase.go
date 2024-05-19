@@ -8,6 +8,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"os"
 	"github.com/google/uuid"
+	"mime/multipart"
+	localError "halosuster/pkg/error"
 )
    
 // createSession creates a new AWS session
@@ -27,25 +29,30 @@ func createSession() (*session.Session, error) {
 }
    
 // UploadFileToS3 uploads a file to S3 with a given prefix
-func UploadFileToS3(file) (string, error) {
+func UploadFileToS3(fileHeader *multipart.FileHeader) (string, *localError.GlobalError) {
+	file, errFile := fileHeader.Open()
+	if errFile != nil {
+		return "", localError.ErrInternalServer("error upload image", errFile)
+	}
+
 	sess, err := createSession()
 	if err != nil {
-	 	return nil, err
+	 	return "", localError.ErrInternalServer("error upload image", err)
 	}
    
 	svc := s3.New(sess)
 
-	bucket := ""
+	bucket := "aws"
 	key := uuid.NewString()
    
 	_, err = svc.PutObject(&s3.PutObjectInput{
 		Bucket:        aws.String(bucket),
 		Key:           aws.String(key),
 		Body:          file,
-		ContentLength: aws.Int64(file.Size),
+		ContentLength: aws.Int64(fileHeader.Size),
 	})
 	if err != nil {
-		return nil, err
+		return "", localError.ErrInternalServer("error upload image", err)
 	}
    
 	return fmt.Sprintf("https://awss3.%s.jpeg", key), nil

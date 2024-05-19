@@ -3,7 +3,6 @@ package image
 import (
 	"halosuster/internal/middleware"
 	"halosuster/pkg/response"
-	"path/filepath"
 	"log"
 	"github.com/gin-gonic/gin"
 	"sync"
@@ -59,7 +58,7 @@ func (h *imageHandler) Upload(ctx *gin.Context) {
 		// filename := filepath.Base(file.Filename)
 		// log.Println(filename)
 
-        err := UploadFileToS3(file)
+        url, err := UploadFileToS3(file)
         if err != nil {
             log.Println("Error uploading file:", err)
             response.GenerateResponse(ctx, 500)
@@ -67,7 +66,11 @@ func (h *imageHandler) Upload(ctx *gin.Context) {
 			return
         }
 
-		response.GenerateResponse(ctx, 200)
+		res := UploadImageResponse{
+			ImageUrl: url,
+		}
+
+		response.GenerateResponse(ctx, 200, response.WithMessage("upload file successfully!"), response.WithData(res))
     }()
 
     wg.Wait()
