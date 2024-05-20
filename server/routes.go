@@ -1,6 +1,7 @@
 package server
 
 import (
+	"halosuster/internal/record"
 	"halosuster/internal/user"
 	"halosuster/internal/image"
 	"halosuster/pkg/response"
@@ -19,6 +20,7 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 
 	initializeUserHandler(db, router)
 	initializeImageHandler(router)
+	initializeRecordHandler(db, router)
 }
 
 func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
@@ -34,6 +36,15 @@ func initializeImageHandler(router *gin.RouterGroup) {
 	imageH := image.NewImageHandler()
 
 	imageH.Router(router)
+}
+
+func initializeRecordHandler(db *sqlx.DB, router *gin.RouterGroup) {
+	// Initalize all dependecies
+	recordRepo := record.NewRecordRepo(db)
+	recordUsecase := record.NewRecordUsecase(recordRepo)
+	recordHandler := record.NewRecordHandler(recordUsecase)
+
+	recordHandler.Router(router)
 }
 
 func NoRouteHandler(ctx *gin.Context) {

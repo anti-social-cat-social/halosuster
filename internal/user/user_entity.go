@@ -15,13 +15,13 @@ const (
 )
 
 type User struct {
-	ID                  string    `json:"id" db:"id"`
-	Role                UserRole  `json:"role" db:"role"`
-	NIP                 string    `json:"nip" db:"nip"`
-	Name                string    `json:"name" db:"name"`
-	Password            *string   `json:"password" db:"password"`
-	IdentityCardScanImg string    `json:"identityCardScanImg" db:"identity_card_scan_img"`
-	CreatedAt           time.Time `json:"createdAt" db:"created_at"`
+	ID                  string     `json:"id" db:"id"`
+	Role                UserRole   `json:"role" db:"role"`
+	NIP                 string     `json:"nip" db:"nip"`
+	Name                string     `json:"name" db:"name"`
+	Password            *string    `json:"password" db:"password"`
+	IdentityCardScanImg string     `json:"identityCardScanImg" db:"identity_card_scan_img"`
+	CreatedAt           *time.Time `json:"createdAt" db:"created_at"`
 }
 
 type ITRegisterDTO struct {
@@ -94,15 +94,20 @@ type UserResponse struct {
 	UserId    string `json:"userId"`
 	NIP       string `json:"nip"`
 	Name      string `json:"name"`
-	CreatedAt string `json:"createdAt"`
+	CreatedAt string `json:"createdAt,omitempty"`
 }
 
 func FormatUserResponse(user User) UserResponse {
+	var createdAt string
+
+	if user.CreatedAt != nil {
+		createdAt = user.CreatedAt.Format(time.RFC3339)
+	}
 	return UserResponse{
 		UserId:    user.ID,
 		NIP:       user.NIP,
 		Name:      user.Name,
-		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+		CreatedAt: createdAt,
 	}
 }
 
