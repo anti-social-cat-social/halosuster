@@ -1,6 +1,7 @@
 package server
 
 import (
+	"halosuster/internal/record"
 	"halosuster/internal/user"
 	"halosuster/pkg/response"
 	"net/http"
@@ -17,6 +18,7 @@ func NewRoute(engine *gin.Engine, db *sqlx.DB) {
 	router.GET("ping", pingHandler)
 
 	initializeUserHandler(db, router)
+	initializeRecordHandler(db, router)
 }
 
 func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
@@ -26,6 +28,15 @@ func initializeUserHandler(db *sqlx.DB, router *gin.RouterGroup) {
 	userH := user.NewUserHandler(userUc)
 
 	userH.Router(router)
+}
+
+func initializeRecordHandler(db *sqlx.DB, router *gin.RouterGroup) {
+	// Initalize all dependecies
+	recordRepo := record.NewRecordRepo(db)
+	recordUsecase := record.NewRecordUsecase(recordRepo)
+	recordHandler := record.NewRecordHandler(recordUsecase)
+
+	recordHandler.Router(router)
 }
 
 func NoRouteHandler(ctx *gin.Context) {

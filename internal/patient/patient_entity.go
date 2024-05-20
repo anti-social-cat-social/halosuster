@@ -10,10 +10,11 @@ const (
 )
 
 type Patient struct {
-	IdentityNumber      int64     `json:"identityNumber"`
-	PhoneNumber         string    `json:"phoneNumber"`
-	Name                string    `json:"name"`
-	BirthDate           time.Time `json:"birthDate"`
-	Gender              Gender    `json:"gender"`
-	IdentityCardScanImg string    `json:"identityCardScanImg"`
+	IdentityNumber      int64      `json:"identityNumber"`
+	PhoneNumber         string     `json:"phoneNumber"`
+	Name                string     `json:"name"`
+	BirthDate           string     `json:"birthDate"`
+	Gender              Gender     `json:"gender"`
+	IdentityCardScanImg string     `json:"identityCardScanImg"`
+	CreatedAt           *time.Time `json:"-"`
 }
