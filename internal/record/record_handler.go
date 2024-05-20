@@ -24,6 +24,7 @@ func (h *recordHandler) Router(r *gin.RouterGroup) {
 	group := r.Group("medical/record", middleware.UseJwtAuth)
 
 	group.GET("/", h.GetAll)
+	group.POST("/", h.Store)
 }
 
 func (h *recordHandler) GetAll(ctx *gin.Context) {
@@ -55,4 +56,23 @@ func (h *recordHandler) GetAll(ctx *gin.Context) {
 	}
 
 	response.GenerateResponse(ctx, 200, response.WithData(result))
+}
+
+func (h *recordHandler) Store(ctx *gin.Context) {
+	var request RecordDTO
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		response.GenerateResponse(ctx, 400, response.WithData(err))
+		ctx.Abort()
+		return
+	}
+
+	err := h.uc.Create(request)
+	if err != nil {
+		response.GenerateResponse(ctx, err.Code, response.WithData(err.Error.Error()))
+		ctx.Abort()
+		return
+	}
+
+	response.GenerateResponse(ctx, 201, response.WithData(request))
 }

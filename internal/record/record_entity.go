@@ -9,12 +9,18 @@ import (
 type Record struct {
 	ID             string          `json:"-"`
 	Patient        patient.Patient `json:"identityDetail"`
-	IdentityNumber string          `json:"-"`
-	Symptomp       string          `json:"symptoms"`
-	Medication     string          `json:"medication"`
+	IdentityNumber string          `json:"-" db:"identity"`
+	Symptomp       string          `json:"symptoms" db:"symptoms"`
+	Medication     string          `json:"medication" db:"medications"`
 	CreatedAt      time.Time       `json:"createdAt"`
-	Creator        user.User       `json:"createdBy"`
+	Creator        user.User       `json:"createdBy" db:"creator"`
 	CreatedBy      string          `json:"-"`
+}
+
+type RecordDTO struct {
+	IdentityNumber int    `json:"identityNumber" binding:"required,numeric"`
+	Symptomp       string `json:"symptoms" binding:"required,min=1,max=2000"`
+	Medication     string `json:"medications" binding:"required,min=1,max=2000"`
 }
 
 type RecordResponse struct {

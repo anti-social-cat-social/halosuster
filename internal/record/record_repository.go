@@ -11,6 +11,7 @@ import (
 
 type IRecordRepository interface {
 	GetAll(params RecordQueryParam) ([]Record, *localError.GlobalError)
+	Create(entity *Record) *localError.GlobalError
 }
 
 type recordRepo struct {
@@ -99,4 +100,17 @@ func (r *recordRepo) GetAll(param RecordQueryParam) ([]Record, *localError.Globa
 	}
 
 	return records, nil
+}
+
+func (repo *recordRepo) Create(entity *Record) *localError.GlobalError {
+	// Creat equery
+	q := "INSERT INTO records (symptoms, medications, identity_number, created_by) values (:symtoms, :medications, :identity, :creator)"
+
+	// Execute Query
+	_, err := repo.db.NamedExec(q, entity)
+	if err != nil {
+		return localError.ErrInternalServer(err.Error(), err)
+	}
+
+	return nil
 }

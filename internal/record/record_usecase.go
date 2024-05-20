@@ -2,10 +2,12 @@ package record
 
 import (
 	localError "halosuster/pkg/error"
+	"strconv"
 )
 
 type IRecordUsecase interface {
 	GetAll(params RecordQueryParam) ([]RecordResponse, *localError.GlobalError)
+	Create(dto RecordDTO) *localError.GlobalError
 }
 
 type recordUsecase struct {
@@ -33,4 +35,19 @@ func (uc *recordUsecase) GetAll(params RecordQueryParam) ([]RecordResponse, *loc
 	}
 
 	return records, err
+}
+
+func (uc *recordUsecase) Create(dto RecordDTO) *localError.GlobalError {
+	// Change identity number
+	identityNumber := strconv.Itoa(dto.IdentityNumber)
+
+	// Create entity data
+	record := Record{
+		IdentityNumber: identityNumber,
+		Symptomp:       dto.Symptomp,
+		Medication:     dto.Medication,
+	}
+
+	// Utilize repo
+	return uc.repo.Create(&record)
 }
