@@ -12,11 +12,13 @@ import (
 type IUserUsecase interface {
 	NurseLogin(req NurseLoginDTO) (User, *localError.GlobalError)
 	ITLogin(req ITLoginDTO) (*LoginResponse, *localError.GlobalError)
+	ITRegister(req ITRegisterDTO) (*LoginResponse, *localError.GlobalError)
 	FindByNIP(nip string) (*User, *localError.GlobalError)
 	NurseRegister(req NurseRegisterDTO) (User, *localError.GlobalError)
 	NurseAccess(req NurseAccessDTO, id string) *localError.GlobalError
 	GetUsers(query UserQueryParams) ([]User, *localError.GlobalError)
 	Delete(id string) *localError.GlobalError
+	Update(id string, dto NurseUpdateDTO) *localError.GlobalError
 }
 
 type userUsecase struct {
@@ -60,6 +62,53 @@ func (a *userUsecase) ITLogin(req ITLoginDTO) (*LoginResponse, *localError.Globa
 	}
 
 	response := FormatLoginResponse(*user, token)
+
+	return &response, nil
+}
+
+func (uc *userUsecase) ITRegister(req ITRegisterDTO) (*LoginResponse, *localError.GlobalError) {
+	// FInd existing user data by NIP
+	existingUser, _ := uc.repo.FindByNIP(req.NIP)
+	if existingUser != nil {
+		return nil, localError.ErrConflict("User already exists", errors.New("user already exists"))
+	}
+
+	// Generate Password
+	password, errPass := hasher.HashPassword(req.Password)
+	if errPass != nil {
+		return nil, localError.ErrInternalServer(errPass.Error(), errPass)
+	}
+
+	// Create User
+	user, err := uc.repo.Create(User{
+		Role:                IT,
+		NIP:                 req.NIP,
+		Name:                req.Name,
+		Password:            &password,
+		IdentityCardScanImg: nil,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate token
+	tokenData := tokenizer.TokenData{
+		ID:   user.ID,
+		Name: user.Name,
+		Role: string(user.Role),
+	}
+
+	token, errToken := tokenizer.GenerateToken(tokenData)
+	if errToken != nil {
+		return nil, localError.ErrInternalServer(errToken.Error(), errToken)
+	}
+
+	response := LoginResponse{
+		UserId:      user.ID,
+		NIP:         user.NIP,
+		Name:        user.Name,
+		AccessToken: token,
+	}
 
 	return &response, nil
 }
@@ -139,7 +188,7 @@ func (a *userUsecase) NurseRegister(req NurseRegisterDTO) (User, *localError.Glo
 	nurse := User{
 		NIP:                 req.NIP,
 		Name:                req.Name,
-		IdentityCardScanImg: req.IdentityCardScanImg,
+		IdentityCardScanImg: &req.IdentityCardScanImg,
 		Role:                UserRole("nurse"),
 	}
 
@@ -202,4 +251,32 @@ func (uc *userUsecase) Delete(id string) *localError.GlobalError {
 	}
 
 	return nil
+}
+
+func (uc *userUsecase) Update(id string, dto NurseUpdateDTO) *localError.GlobalError {
+	// Get existing user
+	nip := strconv.Itoa(dto.NIP)
+
+	existingUser, errExists := uc.repo.FindByNIP(nip)
+
+	// IF user not found
+	if errExists != nil {
+		return localError.ErrNotFound(errExists.Message.(string), errExists.Error)
+	}
+
+	// User not nurse
+	if existingUser.Role != Nurse {
+		return localError.ErrNotFound("NOT FOUND", errors.New("not found"))
+	}
+
+	// Return errror if user already exists and new NIP not same with request
+	if existingUser.ID != id {
+		return localError.ErrConflict("NIP already exists", errors.New("user already exists"))
+	}
+
+	// Update current data
+	existingUser.NIP = nip
+	existingUser.Name = dto.Name
+
+	return uc.repo.Update(id, *existingUser)
 }

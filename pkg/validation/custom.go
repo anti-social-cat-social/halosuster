@@ -30,7 +30,8 @@ func ValidNameValidator(fl validator.FieldLevel) bool {
 // nipPrefix is considered by spesific role. Pass the correct / valid NIP prefix
 func ValidNIP(nipPrefix string) validator.Func {
 	return func(fl validator.FieldLevel) bool {
-		value := fl.Field().String()
+		raw := fl.Field().Int()
+		value := strconv.Itoa(int(raw))
 
 		if len(value) < 13 {
 			return false

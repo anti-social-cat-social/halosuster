@@ -34,5 +34,5 @@ func main() {
 	server.NewRoute(r, db)
 
 	// Start the server
-	r.Run("0.0.0.0:8080")
+	r.Run("0.0.0.0:8088")
 }

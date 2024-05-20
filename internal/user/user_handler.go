@@ -29,16 +29,18 @@ func (h *userHandler) Router(r *gin.RouterGroup) {
 	itAuth := group.Group("it")
 	nurseAuth := group.Group("nurse")
 
-	// Utillize group to use global setting on group parent (if exists)
-	group.POST("nurse/login", h.NurseLogin)
-
 	// Auth route for IT
 	itAuth.POST("login", h.ITLogin)
-	group.POST("nurse/register", h.NurseRegister)
-	group.POST("nurse/:id/access", h.NurseAccess)
+	itAuth.POST("register", h.ITRegister)
 
 	group.GET("", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.GetUsers)
+
+	// Nurse group auth
+	nurseAuth.POST("/login", h.NurseLogin)
+	nurseAuth.POST("register", h.NurseRegister)
+	nurseAuth.POST("/:id/access", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.NurseAccess)
 	nurseAuth.DELETE("/:id", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.Delete)
+	nurseAuth.PUT("/:id", middleware.UseJwtAuth, middleware.HasRoles(string(IT)), h.NurseUpdate)
 }
 
 func (h *userHandler) ITLogin(ctx *gin.Context) {
@@ -175,6 +177,77 @@ func (h *userHandler) Delete(ctx *gin.Context) {
 	err := h.uc.Delete(id)
 	if err != nil {
 		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
+		return
+	}
+
+	response.GenerateResponse(ctx, 200)
+}
+
+func (h *userHandler) ITRegister(ctx *gin.Context) {
+	var request ITRegisterDTO
+
+	// Parse payload to DTO
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		response.GenerateResponse(ctx, 400, response.WithData(err.Error()))
+		ctx.Abort()
+		return
+	}
+
+	// Validator
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	validate.RegisterValidation("valid_nip", validation.ValidNIP(string(ITPrefix)))
+
+	errVal := validate.Struct(request)
+	if errVal != nil {
+		valErr := validation.FormatValidation(errVal)
+
+		response.GenerateResponse(ctx, 400, response.WithData(valErr))
+		ctx.Abort()
+		return
+	}
+
+	// Utilize usecase to craete User
+	user, err := h.uc.ITRegister(request)
+	if err != nil {
+		response.GenerateResponse(ctx, err.Code, response.WithMessage(err.Message))
+		ctx.Abort()
+		return
+	}
+
+	response.GenerateResponse(ctx, 200, response.WithData(user))
+}
+
+func (h *userHandler) NurseUpdate(ctx *gin.Context) {
+	var request NurseUpdateDTO
+	var id string
+
+	// Parse payload
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		response.GenerateResponse(ctx, 400, response.WithData(err.Error()))
+		ctx.Abort()
+		return
+	}
+
+	// Parse ID
+	id = ctx.Param("id")
+
+	// Additional validate response
+	validate := validator.New()
+	validate.RegisterValidation("valid_nip", validation.ValidNIP(string(NursePrefix)))
+
+	if err := validate.Struct(request); err != nil {
+		msg := validation.FormatValidation(err)
+
+		response.GenerateResponse(ctx, 400, response.WithData(msg))
+		ctx.Abort()
+		return
+	}
+
+	// Utilize usecase
+	err := h.uc.Update(id, request)
+	if err != nil {
+		response.GenerateResponse(ctx, 400, response.WithMessage(err.Message))
+		ctx.Abort()
 		return
 	}
 
